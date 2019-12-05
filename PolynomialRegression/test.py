@@ -1,5 +1,6 @@
 import operator
-
+import os
+import io
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -7,15 +8,29 @@ from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.preprocessing import PolynomialFeatures
 
-np.random.seed(0)
-x = 2 - 3 * np.random.normal(0, 1, 20)
-y = x - 2 * (x ** 2) + 0.5 * (x ** 3) + np.random.normal(-3, 3, 20)
+def load_data_lists(data_dir,file_name):
+    with open(os.path.join(data_dir,file_name),"r") as f:
+        lines = f.readlines()
+        line = [ls.strip('\n') for ls in lines] 
+        # \t data uses TAB to seperate x & y columns
+        strX = ([l.strip().split('\t')[0] for l in line])
+        strY = ([l.strip().split('\t')[1] for l in line])
+        x = np.array(strX, dtype=np.float32)
+        y = np.array(strY, dtype=np.float32)
+    return x, y
+
+x, y = load_data_lists("PolynomialRegression","data.txt")
 
 # transforming the data to include another axis
 x = x[:, np.newaxis]
 y = y[:, np.newaxis]
 
-polynomial_features= PolynomialFeatures(degree=2)
+try:
+    mode=int(input('Give Polynomial degree: '))
+except ValueError:
+    print ("Not a int number")
+
+polynomial_features= PolynomialFeatures(degree=mode)
 x_poly = polynomial_features.fit_transform(x)
 
 model = LinearRegression()
@@ -24,8 +39,8 @@ y_poly_pred = model.predict(x_poly)
 
 rmse = np.sqrt(mean_squared_error(y,y_poly_pred))
 r2 = r2_score(y,y_poly_pred)
-print(rmse)
-print(r2)
+print("RMSE:", rmse)
+print("Regression Score: ", r2)
 
 plt.scatter(x, y, s=10)
 # sort the values of x before line plot
